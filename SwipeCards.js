@@ -110,6 +110,26 @@ class SwipeCards extends Component {
     this._animateEntrance();
   }
 
+  triggerNope() {
+    this.props.handleNope(this.state.card)
+
+    this.props.cardRemoved
+      ? this.props.cardRemoved(this.props.cards.indexOf(this.state.card))
+      : null;
+
+    Animated.timing(this.state.pan, {
+      toValue: { x: -1000, y: 0 }
+    }).start(this._resetState.bind(this))
+  }
+
+  triggerYup() {
+    this.props.handleYup(this.state.card)
+
+    Animated.timing(this.state.pan, {
+      toValue: { x: 1000, y: 0 }
+    }).start(this._resetState.bind(this))
+  }
+
   renderNoMoreCards() {
     if (this.props.renderNoMoreCards)
       return this.props.renderNoMoreCards();

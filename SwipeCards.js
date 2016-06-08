@@ -152,15 +152,13 @@ class SwipeCards extends Component {
     let opacity = pan.x.interpolate({inputRange: [-200, 0, 200], outputRange: [0.5, 1, 0.5]});
     let scale = enter;
 
-    let animatedCardstyles = {transform: [{translateX}, {translateY}, {rotate}, {scale}], opacity};
+    let animatedCardstyles = {transform: [{translateX}, {translateY}, {rotate}, {scale}]};
 
     let yupOpacity = pan.x.interpolate({inputRange: [0, 150], outputRange: [0, 1]});
-    let yupScale = pan.x.interpolate({inputRange: [0, 150], outputRange: [0.5, 1], extrapolate: 'clamp'});
-    let animatedYupStyles = {transform: [{scale: yupScale}], opacity: yupOpacity}
+    let animatedYupStyles = {opacity: yupOpacity}
 
     let nopeOpacity = pan.x.interpolate({inputRange: [-150, 0], outputRange: [1, 0]});
-    let nopeScale = pan.x.interpolate({inputRange: [-150, 0], outputRange: [1, 0.5], extrapolate: 'clamp'});
-    let animatedNopeStyles = {transform: [{scale: nopeScale}], opacity: nopeOpacity}
+    let animatedNopeStyles = {opacity: nopeOpacity}
 
     return (
       <View style={styles.container}>
@@ -168,37 +166,33 @@ class SwipeCards extends Component {
             ? (
             <Animated.View style={[styles.card, animatedCardstyles]} {...this._panResponder.panHandlers}>
               {this.renderCard(this.state.card)}
+              { this.props.renderYup
+                ? this.props.renderYup(pan)
+                : (
+                    this.props.showYup
+                    ? (
+                      <Animated.View style={[styles.yup, animatedYupStyles]}>
+                        <Text style={styles.yupText}>Yup!</Text>
+                      </Animated.View>
+                    )
+                    : null
+                  )
+              }
+              { this.props.renderNope
+                ? this.props.renderNope(pan)
+                : (
+                    this.props.showNope
+                    ? (
+                      <Animated.View style={[styles.nope, animatedNopeStyles]}>
+                        <Text style={styles.nopeText}>Nope!</Text>
+                      </Animated.View>
+                      )
+                    : null
+                  )
+              }
             </Animated.View>
             )
             : this.renderNoMoreCards() }
-
-
-        { this.props.renderNope
-          ? this.props.renderNope(pan)
-          : (
-              this.props.showNope
-              ? (
-                <Animated.View style={[styles.nope, animatedNopeStyles]}>
-                  <Text style={styles.nopeText}>Nope!</Text>
-                </Animated.View>
-                )
-              : null
-            )
-        }
-
-        { this.props.renderYup
-          ? this.props.renderYup(pan)
-          : (
-              this.props.showYup
-              ? (
-                <Animated.View style={[styles.yup, animatedYupStyles]}>
-                  <Text style={styles.yupText}>Yup!</Text>
-                </Animated.View>
-              )
-              : null
-            )
-        }
-
       </View>
     );
   }
@@ -229,30 +223,36 @@ var styles = StyleSheet.create({
     alignItems: 'center',
   },
   yup: {
-    borderColor: 'green',
-    borderWidth: 2,
+    borderColor: '#68DE9B',
+    borderWidth: 3,
     position: 'absolute',
-    padding: 20,
-    bottom: 20,
+    top: 20,
+    left: 20,
+    padding: 10,
     borderRadius: 5,
-    right: 20,
+    transform: [{rotate: "-15deg"}],
   },
   yupText: {
-    fontSize: 16,
-    color: 'green',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#68DE9B',
+    backgroundColor: 'transparent',
   },
   nope: {
-    borderColor: 'red',
-    borderWidth: 2,
+    borderColor: '#FB7259',
+    borderWidth: 3,
     position: 'absolute',
-    bottom: 20,
-    padding: 20,
+    top: 20,
+    right: 20,
+    padding: 10,
     borderRadius: 5,
-    left: 20,
+    transform: [{rotate: "15deg"}],
   },
   nopeText: {
-    fontSize: 16,
-    color: 'red',
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FB7259',
+    backgroundColor: 'transparent',
   }
 });
 

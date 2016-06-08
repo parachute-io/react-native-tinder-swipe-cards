@@ -148,7 +148,7 @@ class SwipeCards extends Component {
 
     let [translateX, translateY] = [pan.x, pan.y];
 
-    let rotate = pan.x.interpolate({inputRange: [-200, 0, 200], outputRange: ["-30deg", "0deg", "30deg"]});
+    let rotate = pan.x.interpolate({inputRange: [-200, 0, 200], outputRange: ["30deg", "0deg", "-30deg"]});
     let opacity = pan.x.interpolate({inputRange: [-200, 0, 200], outputRange: [0.5, 1, 0.5]});
     let scale = enter;
 

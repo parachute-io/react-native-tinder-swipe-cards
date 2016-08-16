@@ -39,12 +39,20 @@ class SwipeCards extends Component {
       ? this.props.loop ? this.props.cards[0] : null
       : this.props.cards[newIdx];
 
+    if (card === null && this.props.handleNoMoreCards) {
+      this.props.handleNoMoreCards()
+    }
+
     this.setState({
       card: card
     });
   }
 
   componentDidMount() {
+    if (!this.props.cards.length && this.props.handleNoMoreCards) {
+      this.props.handleNoMoreCards()
+    }
+
     this._animateEntrance();
   }
 
@@ -206,7 +214,8 @@ SwipeCards.propTypes = {
   showYup: React.PropTypes.bool,
   showNope: React.PropTypes.bool,
   handleYup: React.PropTypes.func,
-  handleNope: React.PropTypes.func
+  handleNope: React.PropTypes.func,
+  handleNoMoreCards: React.PropTypes.func
 };
 
 SwipeCards.defaultProps = {

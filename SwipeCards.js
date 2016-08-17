@@ -26,10 +26,22 @@ class SwipeCards extends Component {
       pan: new Animated.ValueXY(),
       enter: new Animated.Value(0.5),
       card: this.props.cards[0],
+      nextCard: this.props.cards[1]
     }
   }
 
   _goToNextCard() {
+    // set the top card to the one that was underneath
+    this.setState({
+      card: this.state.nextCard
+    });
+
+    if (this.state.nextCard === null) {
+      this.props.handleNoMoreCards && this.props.handleNoMoreCards()
+      return
+    }
+
+    // set the next card
     let currentCardIdx = this.props.cards.indexOf(this.state.card);
     let newIdx = currentCardIdx + 1;
 
@@ -39,13 +51,15 @@ class SwipeCards extends Component {
       ? this.props.loop ? this.props.cards[0] : null
       : this.props.cards[newIdx];
 
-    if (card === null && this.props.handleNoMoreCards) {
-      this.props.handleNoMoreCards()
-    }
+    // hacky way to make sure the top card is rendered before the next card
+    // otherwise there's a flash as the cards are replaced
+    setTimeout(() => {
+      this.state.pan.setValue({x: 0, y: 0})
+      this.setState({
+        nextCard: card
+      });
+    }, 10)
 
-    this.setState({
-      card: card
-    });
   }
 
   componentDidMount() {
@@ -88,10 +102,15 @@ class SwipeCards extends Component {
         }
 
         if (Math.abs(this.state.pan.x._value) > SWIPE_THRESHOLD) {
+          let cb
 
-          this.state.pan.x._value > 0
-            ? this.props.handleYup(this.state.card)
-            : this.props.handleNope(this.state.card)
+          if (this.state.pan.x._value > 0) {
+            cb = this._resetState
+            this.props.handleYup(this.state.card)
+          } else {
+            cb = this._goToNextCard
+            this.props.handleNope(this.state.card)
+          }
 
           this.props.cardRemoved
             ? this.props.cardRemoved(this.props.cards.indexOf(this.state.card))
@@ -100,7 +119,7 @@ class SwipeCards extends Component {
           Animated.decay(this.state.pan, {
             velocity: {x: velocity, y: vy},
             deceleration: 0.98
-          }).start(this._resetState.bind(this))
+          }).start(cb.bind(this))
         } else {
           Animated.spring(this.state.pan, {
             toValue: {x: 0, y: 0},
@@ -112,10 +131,7 @@ class SwipeCards extends Component {
   }
 
   _resetState() {
-    this.state.pan.setValue({x: 0, y: 0});
-    this.state.enter.setValue(0);
-    this._goToNextCard();
-    this._animateEntrance();
+    this.state.pan.setValue({x: 0, y: 0})
   }
 
   triggerNope() {
@@ -127,7 +143,7 @@ class SwipeCards extends Component {
 
     Animated.timing(this.state.pan, {
       toValue: { x: -1000, y: 0 }
-    }).start(this._resetState.bind(this))
+    }).start(this._goToNextCard.bind(this))
   }
 
   triggerYup() {
@@ -168,8 +184,19 @@ class SwipeCards extends Component {
     let nopeOpacity = pan.x.interpolate({inputRange: [-150, 0], outputRange: [1, 0]});
     let animatedNopeStyles = {opacity: nopeOpacity}
 
+    let nextScale = pan.x.interpolate({inputRange: [-1000, -SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD, 1000], outputRange: [1, 1, 0.95, 1, 1]});
+    let animatedNextCardStyles = { transform: [{scale: nextScale}] }
+
     return (
       <View style={styles.container}>
+        { this.state.nextCard
+            ? (
+                <Animated.View style={[ styles.card, styles.nextCard, animatedNextCardStyles]}>
+                  { this.renderCard(this.state.nextCard) }
+                </Animated.View>
+              )
+            : null
+        }
         { this.state.card
             ? (
             <Animated.View style={[styles.card, animatedCardstyles]} {...this._panResponder.panHandlers}>
@@ -230,6 +257,9 @@ var styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  nextCard: {
+    position: 'absolute',
   },
   yup: {
     borderColor: '#68DE9B',
